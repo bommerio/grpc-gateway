@@ -740,11 +740,11 @@ func Register{{$svc.GetName}}{{$.RegisterFuncSuffix}}Client(ctx context.Context,
 {{range $b := $m.Bindings}}
 {{if $b.ResponseBody}}
 type response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} struct {
-	proto.Message
+	*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path}}
 }
 
 func (m response_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}) XXX_ResponseBody() interface{} {
-	response := m.Message.(*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path}})
+	response := m.{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path}}
 	return {{$b.ResponseBody.AssignableExpr "response"}}
 }
 {{end}}
