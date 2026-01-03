@@ -114,15 +114,28 @@ func (g *generator) generate(file *descriptor.File) (string, error) {
 	for _, svc := range file.Services {
 		for _, m := range svc.Methods {
 			imports = append(imports, g.addEnumPathParamImports(file, m, pkgSeen)...)
-			pkg := m.RequestType.File.GoPkg
-			if len(m.Bindings) == 0 ||
-				pkg == file.GoPkg || pkgSeen[pkg.Path] {
+
+			// Skip methods with no bindings
+			if len(m.Bindings) == 0 {
 				continue
 			}
-			pkgSeen[pkg.Path] = true
-			imports = append(imports, pkg)
+
+			// Add request type package import
+			reqPkg := m.RequestType.File.GoPkg
+			if reqPkg != file.GoPkg && !pkgSeen[reqPkg.Path] {
+				pkgSeen[reqPkg.Path] = true
+				imports = append(imports, reqPkg)
+			}
+
+			// Add response type package import
+			respPkg := m.ResponseType.File.GoPkg
+			if respPkg != file.GoPkg && !pkgSeen[respPkg.Path] {
+				pkgSeen[respPkg.Path] = true
+				imports = append(imports, respPkg)
+			}
 		}
 	}
+
 	params := param{
 		File:               file,
 		Imports:            imports,
