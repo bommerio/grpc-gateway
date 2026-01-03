@@ -127,11 +127,21 @@ func (g *generator) generate(file *descriptor.File) (string, error) {
 				imports = append(imports, reqPkg)
 			}
 
-			// Add response type package import
-			respPkg := m.ResponseType.File.GoPkg
-			if respPkg != file.GoPkg && !pkgSeen[respPkg.Path] {
-				pkgSeen[respPkg.Path] = true
-				imports = append(imports, respPkg)
+			// Add response type package import only if any binding has a response body
+			// (response_body annotation causes the type to be used at compile time)
+			hasResponseBody := false
+			for _, b := range m.Bindings {
+				if b.ResponseBody != nil {
+					hasResponseBody = true
+					break
+				}
+			}
+			if hasResponseBody {
+				respPkg := m.ResponseType.File.GoPkg
+				if respPkg != file.GoPkg && !pkgSeen[respPkg.Path] {
+					pkgSeen[respPkg.Path] = true
+					imports = append(imports, respPkg)
+				}
 			}
 		}
 	}
